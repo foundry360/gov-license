@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>License Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -13,28 +14,134 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f7fa;
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-header h2 {
+            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 15px 25px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .nav-item.active {
+            background: #f0f4ff;
+            color: #667eea;
+            border-left-color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-item-icon {
+            margin-right: 10px;
+            font-size: 16px;
+            width: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
             padding: 20px;
         }
 
         .container {
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-            width: 100%;
-            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
         }
 
-        h1 {
+        .container h2 {
             color: #333;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 28px;
+            margin-bottom: 25px;
+            font-size: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 12px;
+            background: transparent;
+            color: #666;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .logout-btn:hover {
+            color: #dc3545;
         }
 
         .form-group {
@@ -51,6 +158,7 @@
 
         input[type="text"],
         input[type="date"],
+        select,
         textarea {
             width: 100%;
             padding: 12px;
@@ -58,9 +166,11 @@
             border-radius: 8px;
             font-size: 14px;
             transition: border-color 0.3s;
+            background: white;
         }
 
         input:focus,
+        select:focus,
         textarea:focus {
             outline: none;
             border-color: #667eea;
@@ -78,32 +188,49 @@
             margin-top: 4px;
         }
 
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
         button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 12px 24px;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.2s;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        button[type="submit"] {
+            background: #667eea;
+            color: white;
         }
 
-        button:active {
-            transform: translateY(0);
+        button[type="submit"]:hover {
+            background: #5568d3;
         }
 
-        button:disabled {
+        button[type="submit"]:active {
+            background: #4a5bc4;
+        }
+
+        button[type="submit"]:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
         }
 
         .result {
@@ -215,14 +342,48 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔐 License Management System</h1>
-        
-        <form id="licenseForm">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-lock"></i> License Portal</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard.html" class="nav-item" id="nav-dashboard">
+                <span class="nav-item-icon"><i class="fas fa-chart-line"></i></span>
+                Dashboard
+            </a>
+            <a href="/customers.html" class="nav-item" id="nav-customers">
+                <span class="nav-item-icon"><i class="fas fa-users"></i></span>
+                Customers
+            </a>
+            <a href="/licenses.html" class="nav-item" id="nav-licenses">
+                <span class="nav-item-icon"><i class="fas fa-key"></i></span>
+                Licenses
+            </a>
+            <a href="/" class="nav-item active" id="nav-generate">
+                <span class="nav-item-icon"><i class="fas fa-plus-circle"></i></span>
+                Generate License Key
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Generate License Key</h1>
+            <div class="user-info">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" onclick="logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>License Generation Form</h2>
+            <form id="licenseForm">
             <div class="form-group">
-                <label for="customer_id">Customer ID *</label>
-                <input type="text" id="customer_id" name="customer_id" required 
-                       placeholder="e.g., CUST-001">
+                <label for="customer_id">Customer *</label>
+                <select id="customer_id" name="customer_id" required>
+                    <option value="">Loading customers...</option>
+                </select>
+                <div class="help-text">Select a customer from the list</div>
             </div>
 
             <div class="form-group">
@@ -231,42 +392,113 @@
                 <div class="help-text">Select a future date for license expiration</div>
             </div>
 
-            <div class="form-group">
-                <label for="features">Features (JSON Array)</label>
-                <textarea id="features" name="features" 
-                          placeholder='["feature1", "feature2", "feature3"]'></textarea>
-                <div class="help-text">Enter features as a JSON array, or leave empty for no features</div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="cancelForm()">Cancel</button>
+                <button type="submit" id="submitBtn">Generate License Key</button>
+            </div>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #666;">Generating license...</p>
             </div>
 
-            <button type="submit" id="submitBtn">Generate License Key</button>
-        </form>
+            <div class="error" id="error"></div>
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p style="margin-top: 10px; color: #666;">Generating license...</p>
-        </div>
-
-        <div class="error" id="error"></div>
-
-        <div class="result" id="result">
-            <h2>✅ License Generated Successfully</h2>
+            <div class="result" id="result">
+            <h2><i class="fas fa-check-circle" style="color: #28a745;"></i> License Generated Successfully</h2>
             
             <div class="license-info">
                 <p><strong>License ID:</strong> <span id="license_id"></span></p>
                 <p><strong>Customer ID:</strong> <span id="result_customer_id"></span></p>
                 <p><strong>Expires At:</strong> <span id="result_expires_at"></span></p>
-                <p><strong>Features:</strong> <span id="result_features"></span></p>
             </div>
 
             <label for="license_key">License Key:</label>
             <div class="license-key" id="license_key"></div>
             
-            <button class="copy-btn" onclick="copyLicenseKey()">📋 Copy License Key</button>
-            <button class="download-btn" onclick="downloadLicenseKey()">💾 Download License File</button>
+                <button class="copy-btn" onclick="copyLicenseKey()"><i class="fas fa-copy"></i> Copy License Key</button>
+                <button class="download-btn" onclick="downloadLicenseKey()"><i class="fas fa-download"></i> Download License File</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Authentication check
+        const authToken = localStorage.getItem('auth_token');
+        if (!authToken) {
+            window.location.href = '/login.html';
+        }
+
+        // Verify token is still valid on page load and get user info
+        fetch('/api/verify-auth', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                localStorage.removeItem('auth_token');
+                window.location.href = '/login.html';
+                return null;
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.authenticated) {
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl) {
+                    userNameEl.textContent = data.username || 'User';
+                }
+                // Load customers for dropdown
+                loadCustomers();
+            }
+        })
+        .catch(() => {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login.html';
+        });
+
+        // Load customers for dropdown
+        async function loadCustomers() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+
+                const response = await fetch('/api/get-customers', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load customers');
+                }
+
+                const result = await response.json();
+                const customerSelect = document.getElementById('customer_id');
+                
+                // Clear loading message
+                customerSelect.innerHTML = '<option value="">Select a customer...</option>';
+                
+                if (result.data && result.data.length > 0) {
+                    result.data.forEach(customer => {
+                        const option = document.createElement('option');
+                        option.value = customer.customer_id;
+                        const displayName = customer.company_name 
+                            ? `${customer.company_name} (${customer.customer_id})`
+                            : customer.customer_id;
+                        option.textContent = displayName;
+                        customerSelect.appendChild(option);
+                    });
+                } else {
+                    customerSelect.innerHTML = '<option value="">No customers found. Add a customer first.</option>';
+                }
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                const customerSelect = document.getElementById('customer_id');
+                customerSelect.innerHTML = '<option value="">Error loading customers</option>';
+            }
+        }
+
         const form = document.getElementById('licenseForm');
         const submitBtn = document.getElementById('submitBtn');
         const loading = document.getElementById('loading');
@@ -288,32 +520,25 @@
             submitBtn.disabled = true;
 
             // Get form data
-            const customerId = document.getElementById('customer_id').value.trim();
+            const customerId = document.getElementById('customer_id').value;
             const expiresAt = document.getElementById('expires_at').value;
-            const featuresText = document.getElementById('features').value.trim();
-
-            // Parse features
-            let features = [];
-            if (featuresText) {
-                try {
-                    features = JSON.parse(featuresText);
-                    if (!Array.isArray(features)) {
-                        throw new Error('Features must be an array');
-                    }
-                } catch (err) {
-                    showError('Invalid JSON format for features. Please use a valid JSON array.');
-                    loading.classList.remove('show');
-                    submitBtn.disabled = false;
-                    return;
-                }
-            }
+            // System license - no features needed
+            const features = [];
 
             try {
+                // Get auth token
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
                 // Call API
                 const response = await fetch('/api/generate-license', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         customer_id: customerId,
@@ -334,8 +559,6 @@
                 document.getElementById('license_id').textContent = data.license_id;
                 document.getElementById('result_customer_id').textContent = data.customer_id;
                 document.getElementById('result_expires_at').textContent = new Date(data.expires_at).toLocaleString();
-                document.getElementById('result_features').textContent = 
-                    data.features.length > 0 ? JSON.stringify(data.features) : 'None';
 
                 result.classList.add('show');
             } catch (err) {
@@ -357,7 +580,7 @@
             navigator.clipboard.writeText(currentLicenseKey).then(() => {
                 const btn = event.target;
                 const originalText = btn.textContent;
-                btn.textContent = '✓ Copied!';
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 btn.style.background = '#28a745';
                 setTimeout(() => {
                     btn.textContent = originalText;
@@ -381,6 +604,32 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        function cancelForm() {
+            // Reset form
+            document.getElementById('licenseForm').reset();
+            // Hide result and error
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+            // Reset customer dropdown
+            loadCustomers();
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login.html';
+        }
+
+        // Highlight active nav item
+        function setActiveNav() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById('nav-generate')?.classList.add('active');
+        }
+
+        setActiveNav();
     </script>
 </body>
 </html>

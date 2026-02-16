@@ -1,0 +1,27 @@
+{
+  "name": "license-portal",
+  "version": "1.0.0",
+  "description": "Lightweight license management system with Supabase and Vercel",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "vercel:dev": "vercel dev"
+  },
+  "keywords": [
+    "license",
+    "management",
+    "supabase",
+    "vercel"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "express": "^4.22.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "vercel": "^34.0.0"
+  }
+}

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licenses - License Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-header h2 {
+            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 15px 25px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .nav-item.active {
+            background: #f0f4ff;
+            color: #667eea;
+            border-left-color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-item-icon {
+            margin-right: 10px;
+            font-size: 16px;
+            width: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 12px;
+            background: transparent;
+            color: #666;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .logout-btn:hover {
+            color: #dc3545;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #666;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-revoked {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-inactive {
+            background: #e2e3e5;
+            color: #6c757d;
+        }
+
+        .status-suspended {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Action menu styles */
+        .action-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .action-menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            color: #666;
+            font-size: 18px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .action-menu-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .action-menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 150px;
+            z-index: 1000;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .action-menu-dropdown.show {
+            display: block;
+        }
+
+        .action-menu-item {
+            display: block;
+            padding: 10px 15px;
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: none;
+            width: 100%;
+            text-align: left;
+            background: white;
+            font-size: 14px;
+        }
+
+        .action-menu-item:hover {
+            background: #f8f9fa;
+        }
+
+        .action-menu-item:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f8f9fa;
+        }
+
+        .action-menu-item:disabled:hover {
+            background: #f8f9fa;
+        }
+
+        /* Dialog styles */
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dialog-overlay.show {
+            display: flex;
+        }
+
+        .dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .dialog h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .dialog p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .dialog-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .dialog-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dialog-btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .dialog-btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .license-key-display {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            color: #333;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .dialog-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .dialog-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Success dialog */
+        .success-dialog-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #d4edda;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .success-dialog-icon i {
+            font-size: 30px;
+            color: #28a745;
+        }
+
+        .success-dialog-content {
+            text-align: center;
+        }
+
+        .success-dialog-content h3 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .success-dialog-content p {
+            color: #666;
+            margin-bottom: 0;
+        }
+
+        .dialog-btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .dialog-btn-success:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-lock"></i> License Portal</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard.html" class="nav-item" id="nav-dashboard">
+                <span class="nav-item-icon"><i class="fas fa-chart-line"></i></span>
+                Dashboard
+            </a>
+            <a href="/customers.html" class="nav-item" id="nav-customers">
+                <span class="nav-item-icon"><i class="fas fa-users"></i></span>
+                Customers
+            </a>
+            <a href="/licenses.html" class="nav-item active" id="nav-licenses">
+                <span class="nav-item-icon"><i class="fas fa-key"></i></span>
+                Licenses
+            </a>
+            <a href="/" class="nav-item" id="nav-generate">
+                <span class="nav-item-icon"><i class="fas fa-plus-circle"></i></span>
+                Generate License Key
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Licenses</h1>
+            <div class="user-info">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" onclick="logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div class="content-card">
+            <h2 style="margin-bottom: 20px; color: #333;">All Licenses</h2>
+            <div id="licensesTable">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading licenses...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- License Key Dialog -->
+    <div class="dialog-overlay" id="licenseKeyDialog">
+        <div class="dialog">
+            <h3>License Key</h3>
+            <p>Copy the license key below:</p>
+            <div id="licenseKeyContent"></div>
+            <div class="dialog-actions">
+                <button class="dialog-btn dialog-btn-cancel" onclick="closeLicenseKeyDialog()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revoke License Confirmation Dialog -->
+    <div class="dialog-overlay" id="revokeDialog">
+        <div class="dialog">
+            <h3>Revoke License</h3>
+            <p>Are you sure you want to revoke this license?</p>
+            <p style="color: #dc3545; font-size: 13px;">
+                This action cannot be undone. Type <strong>"revoke license key"</strong> to confirm.
+            </p>
+            <input type="text" class="dialog-input" id="revokeConfirmInput" placeholder="Type 'revoke license key' to confirm">
+            <div class="dialog-actions">
+                <button class="dialog-btn dialog-btn-cancel" onclick="closeRevokeDialog()">Cancel</button>
+                <button class="dialog-btn dialog-btn-delete" id="revokeConfirmBtn" onclick="confirmRevoke()" disabled>Revoke License</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Dialog -->
+    <div class="dialog-overlay" id="successDialog">
+        <div class="dialog">
+            <div class="success-dialog-content">
+                <div class="success-dialog-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h3>License Revoked</h3>
+                <p id="successMessage">License has been successfully revoked and marked as inactive.</p>
+            </div>
+            <div class="dialog-actions">
+                <button class="dialog-btn dialog-btn-success" onclick="closeSuccessDialog()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Authentication check
+        const authToken = localStorage.getItem('auth_token');
+        if (!authToken) {
+            window.location.href = '/login.html';
+        }
+
+        fetch('/api/verify-auth', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                localStorage.removeItem('auth_token');
+                window.location.href = '/login.html';
+                return null;
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.authenticated) {
+                document.getElementById('userName').textContent = data.username || 'User';
+                loadLicenses();
+            }
+        })
+        .catch(() => {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login.html';
+        });
+
+        // Load all licenses
+        async function loadLicenses() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+
+                const response = await fetch('/api/dashboard-stats?type=all', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(errorData.error || `Failed to load licenses: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load licenses');
+                }
+                renderLicensesTable(result.data || []);
+            } catch (error) {
+                console.error('Error loading licenses:', error);
+                document.getElementById('licensesTable').innerHTML = 
+                    `<div class="error">Error loading licenses: ${error.message}</div>`;
+            }
+        }
+
+        // Render licenses table
+        function renderLicensesTable(licenses) {
+            const container = document.getElementById('licensesTable');
+            
+            if (!licenses || licenses.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No licenses found</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr>';
+            html += '<th>License ID</th>';
+            html += '<th>Customer Name</th>';
+            html += '<th>Customer ID</th>';
+            html += '<th>Issued At</th>';
+            html += '<th>Expires At</th>';
+            html += '<th>Status</th>';
+            html += '<th style="width: 50px;">Actions</th>';
+            html += '</tr></thead><tbody>';
+
+            licenses.forEach(license => {
+                const expiresAt = new Date(license.expires_at);
+                const now = new Date();
+                let statusClass = 'status-active';
+                let statusText = license.status || 'active';
+                const isActive = license.status === 'active' && expiresAt >= now;
+                const isRevoked = license.status === 'revoked';
+                
+                if (expiresAt < now) {
+                    statusClass = 'status-expired';
+                    statusText = 'expired';
+                } else if (license.status === 'revoked') {
+                    statusClass = 'status-inactive';
+                    statusText = 'inactive';
+                } else if (license.status === 'suspended') {
+                    statusClass = 'status-suspended';
+                    statusText = 'suspended';
+                }
+
+                html += '<tr>';
+                html += `<td>${license.license_id.substring(0, 8)}...</td>`;
+                html += `<td>${license.company_name || '-'}</td>`;
+                html += `<td>${license.customer_id}</td>`;
+                html += `<td>${new Date(license.issued_at || license.created_at).toLocaleDateString()}</td>`;
+                html += `<td>${expiresAt.toLocaleDateString()}</td>`;
+                html += `<td><span class="status-badge ${statusClass}">${statusText}</span></td>`;
+                html += `<td>
+                    <div class="action-menu">
+                        <button class="action-menu-btn" onclick="toggleLicenseMenu(event, '${license.license_id}')">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="action-menu-dropdown" id="menu-${license.license_id}">
+                            <button class="action-menu-item" onclick="viewLicenseKey('${license.license_id}')" ${!isActive ? 'disabled' : ''} title="${!isActive ? 'License must be active to reveal key' : 'Reveal license key'}">Reveal</button>
+                            <button class="action-menu-item" onclick="revokeLicense('${license.license_id}')" ${isRevoked ? 'disabled' : ''} title="${isRevoked ? 'License is already revoked' : 'Revoke this license'}">Revoke License</button>
+                        </div>
+                    </div>
+                </td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login.html';
+        }
+
+        // Action menu functions
+        function toggleLicenseMenu(event, licenseId) {
+            event.stopPropagation();
+            // Close all other menus
+            document.querySelectorAll('.action-menu-dropdown').forEach(menu => {
+                if (menu.id !== `menu-${licenseId}`) {
+                    menu.classList.remove('show');
+                }
+            });
+            // Toggle current menu
+            const menu = document.getElementById(`menu-${licenseId}`);
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.action-menu')) {
+                document.querySelectorAll('.action-menu-dropdown').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+
+        // View license key
+        async function viewLicenseKey(licenseId) {
+            // Close menu
+            document.querySelectorAll('.action-menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+
+            // Check if button is disabled (license not active)
+            const event = window.event || arguments[0];
+            if (event && event.target && event.target.disabled) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    throw new Error('No authentication token');
+                }
+
+                // Show loading in dialog
+                document.getElementById('licenseKeyDialog').classList.add('show');
+                document.getElementById('licenseKeyContent').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading license key...</div>';
+
+                const response = await fetch(`/api/get-license-key/${encodeURIComponent(licenseId)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Failed to load license key' }));
+                    throw new Error(errorData.error || 'Failed to load license key');
+                }
+
+                const result = await response.json();
+                
+                // Display license key
+                document.getElementById('licenseKeyContent').innerHTML = `
+                    <div class="license-key-display" id="licenseKeyText">${result.license_key}</div>
+                    <button class="dialog-btn copy-btn" onclick="copyLicenseKey()">
+                        <i class="fas fa-copy"></i> Copy License Key
+                    </button>
+                `;
+            } catch (error) {
+                document.getElementById('licenseKeyContent').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Close license key dialog
+        function closeLicenseKeyDialog() {
+            document.getElementById('licenseKeyDialog').classList.remove('show');
+            document.getElementById('licenseKeyContent').innerHTML = '';
+        }
+
+        // Copy license key to clipboard
+        function copyLicenseKey() {
+            const licenseKeyText = document.getElementById('licenseKeyText');
+            if (!licenseKeyText) return;
+
+            const licenseKey = licenseKeyText.textContent;
+            navigator.clipboard.writeText(licenseKey).then(() => {
+                const btn = event.target.closest('button');
+                if (btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    btn.style.background = '#28a745';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '#667eea';
+                    }, 2000);
+                }
+            }).catch(err => {
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        // Store current license ID for revoke
+        let currentRevokeLicenseId = null;
+
+        // Show revoke confirmation dialog
+        function revokeLicense(licenseId) {
+            // Close menu
+            document.querySelectorAll('.action-menu-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+            
+            currentRevokeLicenseId = licenseId;
+            document.getElementById('revokeConfirmInput').value = '';
+            document.getElementById('revokeConfirmBtn').disabled = true;
+            document.getElementById('revokeDialog').classList.add('show');
+            
+            // Focus on input
+            setTimeout(() => {
+                document.getElementById('revokeConfirmInput').focus();
+            }, 100);
+        }
+
+        // Close revoke dialog
+        function closeRevokeDialog() {
+            document.getElementById('revokeDialog').classList.remove('show');
+            currentRevokeLicenseId = null;
+            document.getElementById('revokeConfirmInput').value = '';
+        }
+
+        // Enable/disable revoke button based on input
+        document.addEventListener('DOMContentLoaded', function() {
+            const revokeInput = document.getElementById('revokeConfirmInput');
+            const revokeBtn = document.getElementById('revokeConfirmBtn');
+            
+            if (revokeInput) {
+                revokeInput.addEventListener('input', function(e) {
+                    if (revokeBtn) {
+                        revokeBtn.disabled = e.target.value.toLowerCase() !== 'revoke license key';
+                    }
+                });
+                
+                revokeInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && revokeBtn && !revokeBtn.disabled) {
+                        confirmRevoke();
+                    }
+                });
+            }
+        });
+
+        // Confirm and revoke license
+        async function confirmRevoke() {
+            if (!currentRevokeLicenseId) return;
+            
+            const confirmInput = document.getElementById('revokeConfirmInput').value;
+            if (confirmInput.toLowerCase() !== 'revoke license key') {
+                alert('Please type "revoke license key" to confirm');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) {
+                    throw new Error('No authentication token');
+                }
+
+                const response = await fetch(`/api/revoke-license/${encodeURIComponent(currentRevokeLicenseId)}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Failed to revoke license' }));
+                    throw new Error(errorData.error || 'Failed to revoke license');
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Close revoke dialog
+                    closeRevokeDialog();
+                    
+                    // Show success dialog
+                    showSuccessDialog('License has been successfully revoked and marked as inactive.');
+                    
+                    // Reload licenses to show updated status
+                    loadLicenses();
+                } else {
+                    throw new Error(result.error || 'Failed to revoke license');
+                }
+            } catch (error) {
+                console.error('Error revoking license:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Show success dialog
+        function showSuccessDialog(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successDialog').classList.add('show');
+        }
+
+        // Close success dialog
+        function closeSuccessDialog() {
+            document.getElementById('successDialog').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
+

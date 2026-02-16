@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - License Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-header h2 {
+            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 15px 25px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .nav-item.active {
+            background: #f0f4ff;
+            color: #667eea;
+            border-left-color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-item-icon {
+            margin-right: 10px;
+            font-size: 16px;
+            width: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 12px;
+            background: transparent;
+            color: #666;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .logout-btn:hover {
+            color: #dc3545;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-value {
+            color: #333;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .card-subtitle {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .quick-actions {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .quick-actions h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 15px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background: #5568d3;
+        }
+
+        .action-btn.secondary {
+            background: #17a2b8;
+        }
+
+        .action-btn.secondary:hover {
+            background: #138496;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card.selected {
+            border: 2px solid #667eea;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: block;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-header h2 {
+            color: #333;
+            font-size: 20px;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #666;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-revoked {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-inactive {
+            background: #e2e3e5;
+            color: #6c757d;
+        }
+
+        .loading-table {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-lock"></i> License Portal</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard.html" class="nav-item active" id="nav-dashboard">
+                <span class="nav-item-icon"><i class="fas fa-chart-line"></i></span>
+                Dashboard
+            </a>
+            <a href="/customers.html" class="nav-item" id="nav-customers">
+                <span class="nav-item-icon"><i class="fas fa-users"></i></span>
+                Customers
+            </a>
+            <a href="/licenses.html" class="nav-item" id="nav-licenses">
+                <span class="nav-item-icon"><i class="fas fa-key"></i></span>
+                Licenses
+            </a>
+            <a href="/" class="nav-item" id="nav-generate">
+                <span class="nav-item-icon"><i class="fas fa-plus-circle"></i></span>
+                Generate License Key
+            </a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Dashboard</h1>
+            <div class="user-info">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" onclick="logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+
+        <div class="dashboard-grid">
+            <div class="card" onclick="showTable('all')" id="card-all">
+                <div class="card-icon"><i class="fas fa-key"></i></div>
+                <div class="card-title">Total Licenses</div>
+                <div class="card-value" id="totalLicenses">-</div>
+                <div class="card-subtitle">All time</div>
+            </div>
+
+            <div class="card" onclick="showTable('active')" id="card-active">
+                <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="card-title">Active Licenses</div>
+                <div class="card-value" id="activeLicenses">-</div>
+                <div class="card-subtitle">Currently valid</div>
+            </div>
+
+            <div class="card" onclick="showTable('expiring')" id="card-expiring">
+                <div class="card-icon"><i class="fas fa-clock"></i></div>
+                <div class="card-title">Expiring Soon</div>
+                <div class="card-value" id="expiringSoon">-</div>
+                <div class="card-subtitle">Next 30 days</div>
+            </div>
+
+            <div class="card" onclick="showTable('customers')" id="card-customers">
+                <div class="card-icon"><i class="fas fa-users"></i></div>
+                <div class="card-title">Total Customers</div>
+                <div class="card-value" id="totalCustomers">-</div>
+                <div class="card-subtitle">Unique customers</div>
+            </div>
+        </div>
+
+        <div class="table-container" id="tableContainer">
+            <div class="table-header">
+                <h2 id="tableTitle">Table</h2>
+            </div>
+            <div id="tableContent">
+                <div class="loading-table">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Authentication check
+        const authToken = localStorage.getItem('auth_token');
+        if (!authToken) {
+            window.location.href = '/login.html';
+        }
+
+        // Verify token and get user info
+        fetch('/api/verify-auth', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                localStorage.removeItem('auth_token');
+                window.location.href = '/login.html';
+                return null;
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.authenticated) {
+                document.getElementById('userName').textContent = data.username || 'User';
+                loadDashboardStats();
+            } else {
+                window.location.href = '/login.html';
+            }
+        })
+        .catch(() => {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login.html';
+        });
+
+        // Load dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+
+                // Load counts for each card
+                const [allRes, activeRes, expiringRes, customersRes] = await Promise.all([
+                    fetch('/api/dashboard-stats?type=all', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('/api/dashboard-stats?type=active', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('/api/dashboard-stats?type=expiring', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('/api/dashboard-stats?type=customers', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+
+                const allData = await allRes.json();
+                const activeData = await activeRes.json();
+                const expiringData = await expiringRes.json();
+                const customersData = await customersRes.json();
+
+                document.getElementById('totalLicenses').textContent = allData.count || 0;
+                document.getElementById('activeLicenses').textContent = activeData.count || 0;
+                document.getElementById('expiringSoon').textContent = expiringData.count || 0;
+                document.getElementById('totalCustomers').textContent = customersData.count || 0;
+                
+                // Show total licenses table by default
+                showTable('all');
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+                showError('Failed to load dashboard statistics');
+            }
+        }
+
+        // Show table for selected card
+        async function showTable(type) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Add selected class to clicked card
+            document.getElementById(`card-${type}`).classList.add('selected');
+
+            // Show table container
+            const container = document.getElementById('tableContainer');
+            container.classList.add('show');
+
+            // Set title
+            const titles = {
+                'all': 'All Licenses',
+                'active': 'Active Licenses',
+                'expiring': 'Expiring Soon (Next 30 Days)',
+                'customers': 'All Customers'
+            };
+            document.getElementById('tableTitle').textContent = titles[type] || 'Table';
+
+            // Show loading
+            document.getElementById('tableContent').innerHTML = '<div class="loading-table"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`/api/dashboard-stats?type=${type}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to load data');
+                }
+
+                // Render table based on type
+                let html = '';
+                if (type === 'customers') {
+                    html = renderCustomersTable(result.data);
+                } else {
+                    html = renderLicensesTable(result.data);
+                }
+
+                document.getElementById('tableContent').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading table data:', error);
+                document.getElementById('tableContent').innerHTML = 
+                    `<div class="error">Error loading data: ${error.message}</div>`;
+            }
+        }
+
+
+        // Render licenses table
+        function renderLicensesTable(licenses) {
+            if (!licenses || licenses.length === 0) {
+                return '<p style="text-align: center; color: #999; padding: 40px;">No licenses found</p>';
+            }
+
+            let html = '<table><thead><tr>';
+            html += '<th>License ID</th>';
+            html += '<th>Customer Name</th>';
+            html += '<th>Customer ID</th>';
+            html += '<th>Issued At</th>';
+            html += '<th>Expires At</th>';
+            html += '<th>Status</th>';
+            html += '</tr></thead><tbody>';
+
+            licenses.forEach(license => {
+                const expiresAt = new Date(license.expires_at);
+                const now = new Date();
+                let statusClass = 'status-active';
+                let statusText = license.status || 'active';
+                
+                if (expiresAt < now) {
+                    statusClass = 'status-expired';
+                    statusText = 'expired';
+                } else if (license.status === 'revoked') {
+                    statusClass = 'status-inactive';
+                    statusText = 'inactive';
+                }
+
+                html += '<tr>';
+                html += `<td>${license.license_id.substring(0, 8)}...</td>`;
+                html += `<td>${license.company_name || '-'}</td>`;
+                html += `<td>${license.customer_id}</td>`;
+                html += `<td>${new Date(license.issued_at || license.created_at).toLocaleDateString()}</td>`;
+                html += `<td>${expiresAt.toLocaleDateString()}</td>`;
+                html += `<td><span class="status-badge ${statusClass}">${statusText}</span></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+
+        // Render customers table
+        function renderCustomersTable(customers) {
+            if (!customers || customers.length === 0) {
+                return '<p style="text-align: center; color: #999; padding: 40px;">No customers found</p>';
+            }
+
+            let html = '<table><thead><tr>';
+            html += '<th>Customer ID</th>';
+            html += '<th>Company Name</th>';
+            html += '<th>Contact Email</th>';
+            html += '<th>Total Licenses</th>';
+            html += '<th>Active Licenses</th>';
+            html += '<th>Latest License Date</th>';
+            html += '</tr></thead><tbody>';
+
+            customers.forEach(customer => {
+                html += '<tr>';
+                html += `<td>${customer.customer_id}</td>`;
+                html += `<td>${customer.company_name || '-'}</td>`;
+                html += `<td>${customer.contact_email || '-'}</td>`;
+                html += `<td>${customer.total_licenses || 0}</td>`;
+                html += `<td>${customer.active_licenses || 0}</td>`;
+                html += `<td>${customer.latest_license_date ? new Date(customer.latest_license_date).toLocaleDateString() : '-'}</td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login.html';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Highlight active nav item based on current page
+        function setActiveNav() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            if (currentPath === '/dashboard.html' || currentPath === '/') {
+                document.getElementById('nav-dashboard')?.classList.add('active');
+            } else if (currentPath === '/customers.html') {
+                document.getElementById('nav-customers')?.classList.add('active');
+            } else if (currentPath === '/licenses.html') {
+                document.getElementById('nav-licenses')?.classList.add('active');
+            } else if (currentPath === '/' || currentPath.includes('index.html')) {
+                document.getElementById('nav-generate')?.classList.add('active');
+            }
+        }
+
+        setActiveNav();
+    </script>
+</body>
+</html>
+

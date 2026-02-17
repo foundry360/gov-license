@@ -194,3 +194,4 @@ The current architecture has a **solid foundation** with license keys not being 
 4. Enhance RLS policies with user-based restrictions
 5. Regular security reviews
 
+

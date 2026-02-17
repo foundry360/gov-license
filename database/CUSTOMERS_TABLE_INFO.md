@@ -79,3 +79,4 @@ WHERE customer_id = 'CUST-001';
 3. Update the dashboard to show customer details
 4. Add customer management UI pages
 
+

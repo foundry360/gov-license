@@ -98,3 +98,4 @@ SELECT * FROM licenses;
 DELETE FROM licenses WHERE customer_id = 'TEST-001';
 ```
 
+

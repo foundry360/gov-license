@@ -1,5 +1,6 @@
-// Get License Key API endpoint
+// Get License Key API endpoint for Vercel
 // GET /api/get-license-key/:license_id
+// This file handles the dynamic route on Vercel
 
 const { createClient } = require('@supabase/supabase-js');
 const jwt = require('jsonwebtoken');
@@ -36,7 +37,28 @@ function generateLicenseKey(licenseData) {
   });
 }
 
-// Main handler
+// Authentication middleware for Vercel
+function authenticateToken(req) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  if (!jwtSecret) {
+    throw new Error('Server configuration error');
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    return decoded;
+  } catch (error) {
+    throw new Error('Invalid or expired token');
+  }
+}
+
+// Main handler for Vercel serverless function
 module.exports = async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -55,6 +77,13 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // Authenticate
+    try {
+      authenticateToken(req);
+    } catch (authError) {
+      return res.status(401).json({ error: authError.message });
+    }
+
     // Check environment variables first
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Missing Supabase credentials:', {
@@ -75,21 +104,30 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Extract license_id from params (Express route parameter)
-    let licenseId = req.params?.license_id;
+    // Extract license_id from Vercel dynamic route
+    // On Vercel, dynamic route parameters are in req.query with the bracket name
+    let licenseId = req.query.license_id;
     
-    // Fallback: extract from URL if params not available
+    // Fallback: extract from URL path if not in query
     if (!licenseId && req.url) {
-      const urlParts = req.url.split('/');
-      licenseId = urlParts[urlParts.length - 1];
-      // Remove query string if present
-      if (licenseId && licenseId.includes('?')) {
-        licenseId = licenseId.split('?')[0];
+      // Vercel dynamic routes: /api/get-license-key/[license_id] 
+      // URL will be: /api/get-license-key/actual-license-id
+      const match = req.url.match(/\/get-license-key\/([^\/\?]+)/);
+      if (match) {
+        licenseId = match[1];
+      } else {
+        // Last resort: get last segment
+        const urlParts = req.url.split('/').filter(p => p);
+        licenseId = urlParts[urlParts.length - 1];
+        // Remove query string if present
+        if (licenseId && licenseId.includes('?')) {
+          licenseId = licenseId.split('?')[0];
+        }
       }
     }
     
     if (!licenseId) {
-      console.error('No license ID provided. URL:', req.url, 'Params:', req.params);
+      console.error('No license ID provided. URL:', req.url, 'Query:', req.query);
       return res.status(400).json({ error: 'License ID is required' });
     }
 
@@ -199,7 +237,7 @@ module.exports = async (req, res) => {
       error: error.message,
       stack: error.stack,
       url: req.url,
-      params: req.params
+      query: req.query
     });
     return res.status(500).json({
       error: 'Internal server error',

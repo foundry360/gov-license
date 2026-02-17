@@ -82,3 +82,4 @@ After adding the anon key and restarting:
 - Create the user in **Authentication** → **Users** in Supabase dashboard
 - Or use the Supabase Auth signup flow
 
+

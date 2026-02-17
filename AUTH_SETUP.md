@@ -84,3 +84,4 @@ Authorization: Bearer <token>
 
 Users can logout by clicking the "Logout" button, which clears the token and redirects to login page.
 
+

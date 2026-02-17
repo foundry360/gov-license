@@ -690,12 +690,23 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
+                const result = await response.json();
+
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ error: 'Failed to load license key' }));
-                    throw new Error(errorData.error || 'Failed to load license key');
+                    console.error('Failed to load license key:', {
+                        status: response.status,
+                        error: result.error,
+                        details: result.details
+                    });
+                    const errorMessage = result.details 
+                        ? `${result.error}: ${result.details}` 
+                        : result.error || 'Failed to load license key';
+                    throw new Error(errorMessage);
                 }
 
-                const result = await response.json();
+                if (!result.license_key) {
+                    throw new Error('License key not found in response');
+                }
                 
                 // Display license key
                 document.getElementById('licenseKeyContent').innerHTML = `
@@ -705,8 +716,12 @@
                     </button>
                 `;
             } catch (error) {
+                console.error('Error loading license key:', error);
                 document.getElementById('licenseKeyContent').innerHTML = 
-                    `<div class="error">Error: ${error.message}</div>`;
+                    `<div class="error">
+                        <strong>Error:</strong> ${error.message}
+                        <br><small>Please check the console for more details.</small>
+                    </div>`;
             }
         }
 

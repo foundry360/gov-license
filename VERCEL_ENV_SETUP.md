@@ -84,3 +84,4 @@ curl -X POST https://your-app.vercel.app/api/generate-license \
 
 If you get errors about missing environment variables, double-check they're set correctly in Vercel.
 
+

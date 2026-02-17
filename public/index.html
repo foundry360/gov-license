@@ -387,6 +387,15 @@
             </div>
 
             <div class="form-group">
+                <label for="customer_code">Customer Code</label>
+                <input type="text" id="customer_code" name="customer_code" 
+                       placeholder="***-****-***" 
+                       pattern="[A-Z0-9]{3}-[A-Z0-9]{4}-[A-Z0-9]{3}"
+                       style="text-transform: uppercase;">
+                <div class="help-text">Customer-facing code (format: XXX-XXXX-XXX)</div>
+            </div>
+
+            <div class="form-group">
                 <label for="expires_at">Expiration Date *</label>
                 <input type="date" id="expires_at" name="expires_at" required>
                 <div class="help-text">Select a future date for license expiration</div>
@@ -410,15 +419,19 @@
             
             <div class="license-info">
                 <p><strong>License ID:</strong> <span id="license_id"></span></p>
-                <p><strong>Customer ID:</strong> <span id="result_customer_id"></span></p>
+                <p><strong>Customer Code:</strong> <span id="result_customer_code" style="font-family: monospace;">***-****-***</span></p>
                 <p><strong>Expires At:</strong> <span id="result_expires_at"></span></p>
             </div>
 
             <label for="license_key">License Key:</label>
             <div class="license-key" id="license_key"></div>
+            <button class="copy-btn" onclick="copyLicenseKey()"><i class="fas fa-copy"></i> Copy License Key</button>
             
-                <button class="copy-btn" onclick="copyLicenseKey()"><i class="fas fa-copy"></i> Copy License Key</button>
-                <button class="download-btn" onclick="downloadLicenseKey()"><i class="fas fa-download"></i> Download License File</button>
+            <label for="api_key_hash" style="margin-top: 20px;">API Key Hash (for environment variable):</label>
+            <div class="license-key" id="api_key_hash" style="font-family: monospace; font-size: 11px;"></div>
+            <button class="copy-btn" onclick="copyApiKeyHash()"><i class="fas fa-copy"></i> Copy API Key Hash</button>
+            
+            <button class="download-btn" onclick="downloadLicenseKey()" style="margin-top: 10px;"><i class="fas fa-download"></i> Download License File</button>
             </div>
         </div>
     </div>
@@ -505,6 +518,7 @@
         const error = document.getElementById('error');
         const result = document.getElementById('result');
         let currentLicenseKey = '';
+        let currentApiKeyHash = null;
 
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
@@ -542,6 +556,7 @@
                     },
                     body: JSON.stringify({
                         customer_id: customerId,
+                        customer_code: customerCode || undefined,
                         expires_at: expiresAt,
                         features: features,
                     }),
@@ -555,9 +570,12 @@
 
                 // Display result
                 currentLicenseKey = data.license_key;
+                currentApiKeyHash = data.api_key_hash;
                 document.getElementById('license_key').textContent = data.license_key;
+                document.getElementById('api_key_hash').textContent = data.api_key_hash || 'Not available';
                 document.getElementById('license_id').textContent = data.license_id;
-                document.getElementById('result_customer_id').textContent = data.customer_id;
+                // Customer Code is customer-facing - show actual code if provided, otherwise masked format
+                document.getElementById('result_customer_code').textContent = data.customer_code || '***-****-***';
                 document.getElementById('result_expires_at').textContent = new Date(data.expires_at).toLocaleString();
 
                 result.classList.add('show');
@@ -578,13 +596,30 @@
             if (!currentLicenseKey) return;
             
             navigator.clipboard.writeText(currentLicenseKey).then(() => {
-                const btn = event.target;
-                const originalText = btn.textContent;
+                const btn = event.target.closest('button');
+                const originalHTML = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 btn.style.background = '#28a745';
                 setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = '#28a745';
+                    btn.innerHTML = originalHTML;
+                    btn.style.background = '#667eea';
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        function copyApiKeyHash() {
+            if (!currentApiKeyHash) return;
+            
+            navigator.clipboard.writeText(currentApiKeyHash).then(() => {
+                const btn = event.target.closest('button');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.style.background = '#28a745';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.background = '#667eea';
                 }, 2000);
             }).catch(err => {
                 alert('Failed to copy to clipboard');
@@ -598,7 +633,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `license-${document.getElementById('result_customer_id').textContent}-${Date.now()}.txt`;
+            a.download = `license-${document.getElementById('result_customer_code').textContent}-${Date.now()}.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

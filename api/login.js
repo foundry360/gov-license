@@ -17,22 +17,41 @@ const JWT_SECRET = process.env.JWT_SECRET || process.env.LICENSE_SECRET_KEY;
 const TOKEN_EXPIRY = '24h';
 
 // Initialize Supabase client for user auth (needs anon key, not service role)
+// Initialize inside the handler to avoid module-level errors
 let supabaseAuth = null;
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log('✓ Supabase Auth initialized with anon key');
-} else {
-  console.log('⚠️ Supabase Auth NOT initialized - missing SUPABASE_URL or SUPABASE_ANON_KEY');
-  if (!SUPABASE_URL) console.log('   Missing: SUPABASE_URL');
-  if (!SUPABASE_ANON_KEY) console.log('   Missing: SUPABASE_ANON_KEY');
+
+function getSupabaseAuth() {
+  if (supabaseAuth) return supabaseAuth;
+  
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    try {
+      supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('✓ Supabase Auth initialized with anon key');
+    } catch (error) {
+      console.error('Error initializing Supabase Auth:', error);
+      return null;
+    }
+  } else {
+    console.log('⚠️ Supabase Auth NOT initialized - missing SUPABASE_URL or SUPABASE_ANON_KEY');
+    if (!SUPABASE_URL) console.log('   Missing: SUPABASE_URL');
+    if (!SUPABASE_ANON_KEY) console.log('   Missing: SUPABASE_ANON_KEY');
+  }
+  
+  return supabaseAuth;
 }
 
 // Main handler
 module.exports = async (req, res) => {
+  console.log('=== LOGIN HANDLER CALLED ===');
+  console.log('Method:', req.method);
+  console.log('JWT_SECRET exists:', !!JWT_SECRET);
+  console.log('SUPABASE_URL exists:', !!SUPABASE_URL);
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Type', 'application/json');
 
   // Handle preflight
   if (req.method === 'OPTIONS') {
@@ -45,8 +64,30 @@ module.exports = async (req, res) => {
   }
 
   try {
-    console.log('Login attempt received:', { hasUsername: !!req.body.username, hasEmail: !!req.body.email, hasPassword: !!req.body.password });
-    const { username, password, email } = req.body;
+    // Parse request body - Vercel may or may not auto-parse depending on setup
+    let body = req.body;
+    
+    // If body is a string, try to parse it as JSON
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (parseError) {
+        console.error('Failed to parse request body:', parseError);
+        return res.status(400).json({
+          error: 'Invalid JSON in request body',
+        });
+      }
+    }
+    
+    // If body is undefined or null, return error
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({
+        error: 'Request body is required',
+      });
+    }
+
+    console.log('Login attempt received:', { hasUsername: !!body.username, hasEmail: !!body.email, hasPassword: !!body.password });
+    const { username, password, email } = body;
 
     // Validate input
     if ((!username && !email) || !password) {
@@ -59,7 +100,8 @@ module.exports = async (req, res) => {
     let userInfo = {};
 
     // Try Supabase Auth first if available (requires anon key)
-    if (supabaseAuth && (email || username)) {
+    const authClient = getSupabaseAuth();
+    if (authClient && (email || username)) {
       try {
         // Determine the email - if username contains @, treat as email, otherwise try both
         let loginEmail = email;
@@ -74,12 +116,20 @@ module.exports = async (req, res) => {
         
         if (loginEmail) {
           console.log('Attempting Supabase auth for:', loginEmail);
-          const { data: authData, error: authError } = await supabaseAuth.auth.signInWithPassword({
+          const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
             email: loginEmail,
             password: password,
           });
 
           if (!authError && authData.user) {
+            // Check if user email is confirmed
+            if (!authData.user.email_confirmed_at && authData.user.confirmed_at) {
+              console.log('⚠️ User email not confirmed');
+              return res.status(401).json({
+                error: 'Email not confirmed. Please check your email and confirm your account.',
+              });
+            }
+            
             authenticated = true;
             userInfo = {
               username: authData.user.email || username,
@@ -93,6 +143,21 @@ module.exports = async (req, res) => {
             console.log('   Error code:', authError?.status || 'N/A');
             if (authError) {
               console.log('   Full error:', JSON.stringify(authError, null, 2));
+              
+              // Provide more specific error messages
+              if (authError.message?.includes('Invalid login credentials')) {
+                return res.status(401).json({
+                  error: 'Invalid email or password',
+                });
+              } else if (authError.message?.includes('Email not confirmed')) {
+                return res.status(401).json({
+                  error: 'Email not confirmed. Please check your email and confirm your account.',
+                });
+              } else if (authError.message) {
+                return res.status(401).json({
+                  error: authError.message,
+                });
+              }
             }
           }
         } else {
@@ -103,6 +168,8 @@ module.exports = async (req, res) => {
       }
     } else {
       console.log('⚠️ Supabase Auth not configured (missing SUPABASE_ANON_KEY)');
+      console.log('   SUPABASE_URL:', SUPABASE_URL ? 'Set' : 'Missing');
+      console.log('   SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'Set' : 'Missing');
     }
 
     // Fallback to simple username/password if Supabase auth fails or not configured
@@ -155,9 +222,15 @@ module.exports = async (req, res) => {
     }
   } catch (error) {
     console.error('Error during login:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Request method:', req.method);
+    console.error('Request headers:', JSON.stringify(req.headers));
+    console.error('Request body type:', typeof req.body);
+    
     return res.status(500).json({
       error: 'Internal server error',
-      details: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred during login',
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
     });
   }
 };

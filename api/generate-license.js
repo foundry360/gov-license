@@ -67,7 +67,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { customer_id, expires_at, features } = req.body;
+    const { customer_id, customer_code, expires_at, features } = req.body;
 
     // Validate input
     if (!customer_id || !expires_at) {
@@ -99,6 +99,9 @@ module.exports = async (req, res) => {
     const licenseKey = generateLicenseKey(licenseData);
     const signatureHash = generateSignatureHash(licenseData);
 
+    // Generate SHA256 hash of the actual license key (for vendor_api_keys)
+    const apiKeyHash = crypto.createHash('sha256').update(licenseKey).digest('hex');
+
     // Store in Supabase
     const supabase = getSupabaseClient();
     const { data: licenseRecord, error: dbError } = await supabase
@@ -121,12 +124,40 @@ module.exports = async (req, res) => {
       });
     }
 
+    // Get customer information for vendor_api_keys
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('company_name, contact_email')
+      .eq('customer_id', licenseData.customer_id)
+      .single();
+
+    // Create vendor_api_keys entry
+    const { error: vendorKeyError } = await supabase
+      .from('vendor_api_keys')
+      .insert({
+        license_id: licenseRecord.license_id,
+        api_key_hash: apiKeyHash,
+        status: 'active',
+        customer_code: customer_code || licenseData.customer_id,
+        customer_name: customer?.company_name || null,
+        contact_email: customer?.contact_email || null,
+      });
+
+    // Log warning if vendor_api_keys insert fails, but don't fail the request
+    // (the license was already created successfully)
+    if (vendorKeyError) {
+      console.warn('Warning: Failed to create vendor_api_keys entry:', vendorKeyError.message);
+      console.warn('License created successfully, but webhook integration may not work for this license');
+    }
+
     // Return success response
     return res.status(200).json({
       success: true,
       license_key: licenseKey,
+      api_key_hash: apiKeyHash,
       license_id: licenseRecord.license_id,
       customer_id: licenseData.customer_id,
+      customer_code: customer_code || null,
       expires_at: licenseData.expires_at,
       features: normalizedFeatures,
     });

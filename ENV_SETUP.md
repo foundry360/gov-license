@@ -207,3 +207,4 @@ If you get an error about missing environment variables, double-check they're se
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API → service_role key | `eyJhbGci...` |
 | `JWT_SECRET` | Generate using Node.js/OpenSSL/Python | `a1b2c3d4...` (64 char hex) |
 
+
